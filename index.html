@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flappy Circle v1.1</title>
+    <title>Flappy Circle v1.2</title>
     <style>
         body {
             margin: 0;
@@ -104,7 +104,7 @@
             position: absolute;
             top: 10px;
             left: 10px;
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
             color: white;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -156,11 +156,17 @@
             margin-bottom: 20px;
         }
 
+        #start-screen {
+            text-align: center;
+        }
+
         #restart-btn,
         #start-btn,
         #customize-btn,
         #save-customize-btn,
-        #customize-end-btn {
+        #customize-end-btn,
+        #instructions-btn,
+        #instructions-end-btn {
             padding: 10px 20px;
             font-size: 20px;
             background-color: #4CAF50;
@@ -176,7 +182,9 @@
         #start-btn:hover,
         #customize-btn:hover,
         #save-customize-btn:hover,
-        #customize-end-btn:hover {
+        #customize-end-btn:hover,
+        #instructions-btn:hover,
+        #instructions-end-btn:hover {
             background-color: #45a049;
             transform: scale(1.05);
         }
@@ -220,8 +228,24 @@
 
         .button-container {
             display: flex;
+            flex-direction: column;
             gap: 10px;
             margin-top: 20px;
+        }
+
+        #instructions-modal {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 40;
+            color: #fff;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
@@ -240,10 +264,11 @@
         <div id="speed-indicator">Velocidad: 1x</div>
         <div id="start-screen">
             <h1>Flappy Circle</h1>
-            <p>Usa la barra espaciadora para saltar</p>
+            <p>Usa la barra espaciadora <br> o pulsa la pantalla para saltar</p>
             <div class="button-container">
                 <button id="start-btn">Empezar</button>
                 <button id="customize-btn">Personaje</button>
+                <button id="instructions-btn">Instrucciones</button>
             </div>
         </div>
         <div id="customize-screen">
@@ -271,6 +296,63 @@
             <div class="button-container">
                 <button id="restart-btn">Reiniciar</button>
                 <button id="customize-end-btn">Personaje</button>
+                <button id="instructions-end-btn">Instrucciones</button>
+            </div>
+        </div>
+
+        <!-- modal instrucciones -->
+        <div id="instructions-modal">
+            <div
+                style="background:rgba(30,30,30,0.95); border-radius:16px; padding:32px 24px; max-width:340px; box-shadow:0 0 20px #000; text-align:left; position:relative;">
+                <h2 style="margin-top:0;">¿Cómo se juega?</h2>
+                <ul style="padding-left:18px;">
+                    <li><b>Salta</b> tocando la pantalla o pulsando la <b>barra espaciadora</b>.</li>
+                    <li>Evita las <b>tuberías verdes</b>.</li>
+                    <li>Recoge <span
+                            style="display:inline-block; vertical-align:middle; width:20px; height:20px; background:gold; border-radius:50%; box-shadow:0 0 2px #000; margin:0 2px;"></span>
+                        <b>monedas</b> para sumar <b>2 puntos</b> extra.
+                    </li>
+                </ul>
+                <h3 style="margin-bottom:6px;">Power-ups:</h3>
+                <ul style="padding-left:18px;">
+                    <li>
+                        <span style="vertical-align:middle; display:inline-block; width:25px; height:25px;">
+                            <!-- Shield SVG -->
+                            <svg width="25" height="25" viewBox="0 0 32 32">
+                                <ellipse cx="16" cy="16" rx="14" ry="14" fill="gold" stroke="#ed3a13"
+                                    stroke-width="3" />
+                                <path d="M16 6 Q24 10 16 28 Q8 10 16 6Z" fill="#fff59d" stroke="#ed3a13"
+                                    stroke-width="2" />
+                            </svg>
+                        </span>
+                        <b>Escudo:</b> Invencible por unos segundos.
+                    </li>
+                    <li>
+                        <span style="vertical-align:middle; display:inline-block; width:25px; height:25px;">
+                            <svg width="25" height="25" viewBox="0 0 32 32">
+                                <circle cx="16" cy="16" r="14" fill="orange" stroke="#d35400" stroke-width="3" />
+                                <polygon points="14,7 22,15 17,15 19,25 10,15 15,15" fill="#fff" stroke="#d35400"
+                                    stroke-width="1" />
+                            </svg>
+                        </span>
+                        <b>Turbo:</b> ¡Velocidad máxima e invencibilidad por 5 tuberías!
+                    </li>
+                    <li>
+                        <span style="vertical-align:middle; display:inline-block; width:25px; height:25px;">
+                            <svg width="25" height="25" viewBox="0 0 32 32">
+                                <circle cx="16" cy="16" r="14" fill="lightblue" stroke="#2980b9" stroke-width="3" />
+                                <path d="M10 20 Q8 12 16 12 Q24 12 22 20" fill="none" stroke="#2980b9"
+                                    stroke-width="4" />
+                                <rect x="8" y="18" width="4" height="6" fill="#fff" />
+                                <rect x="20" y="18" width="4" height="6" fill="#fff" />
+                            </svg>
+                        </span>
+                        <b>Imán:</b> Las monedas cercanas vuelan hacia ti.
+                    </li>
+                </ul>
+                <p style="margin-top:16px; font-size:15px; color:#ffe082;">¡Consigue la mayor puntuación posible!</p>
+                <button id="close-instructions-btn"
+                    style="margin-top:18px; padding:8px 22px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:6px; cursor:pointer;">Cerrar</button>
             </div>
         </div>
     </div>
@@ -293,6 +375,10 @@
         const finalSpeedElement = document.getElementById('final-speed');
         const restartBtn = document.getElementById('restart-btn');
         const startBtn = document.getElementById('start-btn');
+        const instructionsModal = document.getElementById('instructions-modal');
+        const instructionsBtn = document.getElementById('instructions-btn');
+        const instructionsEndBtn = document.getElementById('instructions-end-btn');
+        const closeInstructionsBtn = document.getElementById('close-instructions-btn');
         const customizeBtn = document.getElementById('customize-btn');
         const customizeEndBtn = document.getElementById('customize-end-btn');
         const saveCustomizeBtn = document.getElementById('save-customize-btn');
@@ -348,6 +434,11 @@
         customizeBtn.addEventListener('click', showCustomizeScreen);
         customizeEndBtn.addEventListener('click', showCustomizeScreen);
         saveCustomizeBtn.addEventListener('click', saveCustomization);
+        instructionsBtn.addEventListener('click', showInstructions);
+        instructionsEndBtn.addEventListener('click', showInstructions);
+        closeInstructionsBtn.addEventListener('click', hideInstructions);
+
+
 
         // Event listener para el salto (solo barra espaciadora)
         document.addEventListener('keydown', (e) => {
@@ -419,6 +510,24 @@
 
             bird.style.backgroundColor = selectedColor;
         }
+
+        // Mostrar el modal de instrucciones
+        function showInstructions() {
+            instructionsModal.style.display = 'flex';
+        }
+
+        // Ocultar el modal de instrucciones
+        function hideInstructions() {
+            instructionsModal.style.display = 'none';
+        }
+
+
+        // Opcional: cerrar con Escape el modal de instrucciones
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && instructionsModal.style.display === 'flex') {
+                hideInstructions();
+            }
+        });
 
         // Iniciar juego
         function startGame() {
@@ -522,6 +631,45 @@
             powerupIndicator.textContent = active.length ? active.join(', ') : 'Ninguno';
         }
 
+        // --- función utilitaria para obtener el SVG según el tipo ---
+        function getPowerUpSVG(type) {
+            switch (type) {
+                case 'shield':
+                    // Escudo dorado
+                    return `
+                <svg width="25" height="25" viewBox="0 0 32 32">
+                <ellipse cx="16" cy="16" rx="14" ry="14" fill="gold" stroke="#ed3a13" stroke-width="3"/>
+                <path d="M16 6 Q24 10 16 28 Q8 10 16 6Z" fill="#fff59d" stroke="#ed3a13" stroke-width="2"/>
+                </svg>
+            `;
+                case 'turbo':
+                    // Rayo naranja
+                    return `
+                <svg width="25" height="25" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="14" fill="orange" stroke="#d35400" stroke-width="3"/>
+                <polygon points="14,7 22,15 17,15 19,25 10,15 15,15" fill="#fff" stroke="#d35400" stroke-width="1"/>
+                </svg>
+            `;
+                case 'magnet':
+                    // Imán azul
+                    return `
+                <svg width="25" height="25" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="14" fill="lightblue" stroke="#2980b9" stroke-width="3"/>
+                <path d="M10 20 Q8 12 16 12 Q24 12 22 20" fill="none" stroke="#2980b9" stroke-width="4"/>
+                <rect x="8" y="18" width="4" height="6" fill="#fff"/>
+                <rect x="20" y="18" width="4" height="6" fill="#fff"/>
+                </svg>
+            `;
+                default:
+                    // Círculo gris por defecto
+                    return `
+                <svg width="25" height="25" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="14" fill="#ccc" stroke="#888" stroke-width="3"/>
+                </svg>
+            `;
+            }
+        }
+
         // Crear power-up aleatorio
         function createPowerUp() {
             const types = ['shield', 'turbo', 'magnet'];
@@ -533,21 +681,8 @@
             powerup.className = 'power-up';
             powerup.dataset.type = type;
 
-            // Estilos según tipo
-            switch (type) {
-                case 'shield':
-                    powerup.style.backgroundColor = 'gold';
-                    powerup.style.boxShadow = '0 0 10px yellow';
-                    break;
-                case 'turbo':
-                    powerup.style.backgroundColor = 'orange';
-                    powerup.style.boxShadow = '0 0 10px red';
-                    break;
-                case 'magnet':
-                    powerup.style.backgroundColor = 'lightblue';
-                    powerup.style.boxShadow = '0 0 10px blue';
-                    break;
-            }
+            // Inserta el SVG correspondiente
+            powerup.innerHTML = getPowerUpSVG(type);
 
             powerup.style.left = x + 'px';
             powerup.style.top = y + 'px';
