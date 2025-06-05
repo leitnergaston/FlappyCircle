@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flappy Circle v0.9</title>
+    <title>Flappy Circle v1.1</title>
     <style>
         body {
             margin: 0;
@@ -13,7 +13,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #87CEEB;
+            background-color: #c59371;
             font-family: Arial, sans-serif;
             overflow: hidden;
         }
@@ -252,11 +252,11 @@
                 <div class="color-option selected" style="background-color: red;" data-color="red"></div>
                 <div class="color-option" style="background-color: blue;" data-color="blue"></div>
                 <div class="color-option" style="background-color: green;" data-color="green"></div>
-                <div class="color-option" style="background-color: yellow;" data-color="yellow"></div>
+                <div class="color-option" style="background-color: darkorange;" data-color="darkeorange"></div>
                 <div class="color-option" style="background-color: purple;" data-color="purple"></div>
-                <div class="color-option" style="background-color: orange;" data-color="orange"></div>
-                <div class="color-option" style="background-color: pink;" data-color="pink"></div>
-                <div class="color-option" style="background-color: cyan;" data-color="cyan"></div>
+                <div class="color-option" style="background-color: darkred;" data-color="darkred"></div>
+                <div class="color-option" style="background-color: #E50080;" data-color="#E50080"></div>
+                <div class="color-option" style="background-color: #3D4D9D;" data-color="#3D4D9D"></div>
                 <div class="color-option" style="background-color: white;" data-color="white"></div>
                 <div class="color-option" style="background-color: black;" data-color="black"></div>
             </div>
@@ -321,7 +321,7 @@
         let gameSpeed = 1;
         let pipeSpeed = 2;
         let coinSpeed = 2;
-        let speedIncreaseInterval = 5;
+        let speedIncreaseInterval = 10; //cada 10 tuberias aumentar la velocidad
         let maxSpeed = 3;
         let pipesPassedSinceLastSpeedIncrease = 0;
         let selectedColor = 'red';
@@ -356,7 +356,7 @@
                 birdVelocity = jumpForce;
             }
         });
-        
+
         // Permitir salto con tap/click en el área de juego (excepto sobre botones)
         function handleJumpEvent(e) {
             // Si el juego no está corriendo, ignorar
@@ -845,7 +845,7 @@
             const birdRight = 100 + birdSize;
             const birdTop = birdY;
             const birdBottom = birdY + birdSize;
-            const tolerance = 0.15; // 15% de tolerancia en los bordes
+            const tolerance = 0.30; // 30% de tolerancia en los bordes
 
             for (const pipe of pipes) {
                 const pipeLeft = pipe.x;
