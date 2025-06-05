@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flappy Circle v0.8</title>
+    <title>Flappy Circle v0.9</title>
     <style>
         body {
             margin: 0;
@@ -356,6 +356,39 @@
                 birdVelocity = jumpForce;
             }
         });
+        
+        // Permitir salto con tap/click en el área de juego (excepto sobre botones)
+        function handleJumpEvent(e) {
+            // Si el juego no está corriendo, ignorar
+            if (!gameRunning) return;
+
+            // Si el tap/click fue sobre un botón o UI, ignorar
+            const target = e.target;
+            if (
+                target.closest('#start-btn') ||
+                target.closest('#restart-btn') ||
+                target.closest('#customize-btn') ||
+                target.closest('#save-customize-btn') ||
+                target.closest('#customize-end-btn') ||
+                target.closest('#customize-screen') ||
+                target.closest('#game-over') ||
+                target.closest('#start-screen')
+            ) {
+                return;
+            }
+
+            // Prevenir scroll en móviles
+            e.preventDefault();
+
+            // Saltar
+            birdVelocity = jumpForce;
+        }
+
+
+        // Soporte para móviles y tablets (touch)
+        gameContainer.addEventListener('touchstart', handleJumpEvent, { passive: false });
+        // Soporte para click (PC y tablets)
+        gameContainer.addEventListener('click', handleJumpEvent);
 
         // Selección de color
         colorOptions.forEach(option => {
