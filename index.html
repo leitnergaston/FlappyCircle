@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flappy Circle v1.2</title>
+    <title>Flappy Circle v1.3</title>
     <style>
         body {
             margin: 0;
@@ -240,7 +240,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 40;
             color: #fff;
             flex-direction: column;
@@ -277,7 +277,7 @@
                 <div class="color-option selected" style="background-color: red;" data-color="red"></div>
                 <div class="color-option" style="background-color: blue;" data-color="blue"></div>
                 <div class="color-option" style="background-color: green;" data-color="green"></div>
-                <div class="color-option" style="background-color: darkorange;" data-color="darkeorange"></div>
+                <div class="color-option" style="background-color: darkorange;" data-color="darkorange"></div>
                 <div class="color-option" style="background-color: purple;" data-color="purple"></div>
                 <div class="color-option" style="background-color: darkred;" data-color="darkred"></div>
                 <div class="color-option" style="background-color: #E50080;" data-color="#E50080"></div>
@@ -357,7 +357,38 @@
         </div>
     </div>
 
+    <!-- banner de actualizaciones -->
+    <div id="update-banner"
+        style="display:none; position:fixed; bottom:0; left:0; width:100%; background:rgba(30,30,30,0.97); color:#fff; z-index:1000; padding:18px 0; box-shadow:0 -2px 12px #000; text-align:center; font-size:18px;">
+        <span id="update-banner-message">
+            ¡Nueva versión disponible! <b>Flappy Circle v1.3</b> trae mejoras y correcciones.<br>
+            <span style="font-size:15px; color:#ffe082;">Recarga la página para disfrutar la última versión.</span>
+        </span>
+        <button id="update-banner-accept"
+            style="margin-left:18px; padding:7px 18px; font-size:17px; background:#4CAF50; color:white; border:none; border-radius:6px; cursor:pointer;">¡Entendido!</button>
+    </div>
+
     <script>
+        // variable para la version del juego
+        const GAME_VERSION = "1.3";
+        // claves para localStorage
+        const VERSION_KEY = "flappycircle_version_accepted";
+        // mostrar banner si es uan nueva version para el usuario
+        function checkUpdateBanner() {
+            const acceptedVersion = localStorage.getItem(VERSION_KEY);
+            if (acceptedVersion !== GAME_VERSION) {
+                document.getElementById('update-banner').style.display = 'block';
+            }
+        }
+        // al aceptar, guardar version y ocultar banner
+        document.getElementById('update-banner-accept').addEventListener('click', function () {
+            localStorage.setItem(VERSION_KEY, GAME_VERSION);
+            document.getElementById('update-banner').style.display = 'none';
+        });
+        // ejecutar al cargar la pagina
+        window.addEventListener('DOMContentLoaded', checkUpdateBanner);
+
+
         // Variables del juego
         const gameContainer = document.getElementById('game-container');
         const bird = document.getElementById('bird');
@@ -384,10 +415,16 @@
         const saveCustomizeBtn = document.getElementById('save-customize-btn');
         const colorOptions = document.querySelectorAll('.color-option');
 
+
         let birdY = 300;
         let birdVelocity = 0;
-        let gravity = 0.3;
-        let jumpForce = -6.5;
+        // let gravity = 0.3;
+        // let jumpForce = -6.5;
+        // let gravity = 1.2;
+        // let jumpForce = -12;
+        let gravity = 1200;
+        let jumpForce = -400;
+
         let gameRunning = false;
         let pipes = [];
         let coins = [];
@@ -411,6 +448,7 @@
         let maxSpeed = 3;
         let pipesPassedSinceLastSpeedIncrease = 0;
         let selectedColor = 'red';
+        let lastFrameTime = null; // para calcular delta time
 
         // Power-ups activos
         let activePowerUps = {
@@ -475,7 +513,6 @@
             birdVelocity = jumpForce;
         }
 
-
         // Soporte para móviles y tablets (touch)
         gameContainer.addEventListener('touchstart', handleJumpEvent, { passive: false });
         // Soporte para click (PC y tablets)
@@ -521,8 +558,7 @@
             instructionsModal.style.display = 'none';
         }
 
-
-        // Opcional: cerrar con Escape el modal de instrucciones
+        // cerrar con Escape el modal de instrucciones
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && instructionsModal.style.display === 'flex') {
                 hideInstructions();
@@ -536,6 +572,7 @@
             // Resetear variables
             birdY = 300;
             birdVelocity = 0;
+            bird.style.top = birdY + 'px';
             pipes = [];
             coins = [];
             powerups = [];
@@ -549,6 +586,7 @@
             coinSpeed = 2;
             pipeFrequency = basePipeFrequency;
             pipesPassedSinceLastSpeedIncrease = 0;
+            lastFrameTime = null;
 
             // Resetear power-ups
             activePowerUps = {
@@ -773,21 +811,6 @@
             updatePowerupIndicator();
         }
 
-        // Mover power-ups
-        function movePowerups() {
-            for (let i = powerups.length - 1; i >= 0; i--) {
-                const pu = powerups[i];
-                pu.x -= pipeSpeed;
-                pu.element.style.left = pu.x + 'px';
-
-                // Eliminar power-ups fuera de la pantalla
-                if (pu.x < -25) {
-                    pu.element.remove();
-                    powerups.splice(i, 1);
-                }
-            }
-        }
-
         // Verificar colisión con power-ups
         function checkPowerupCollision() {
             const birdLeft = 100;
@@ -813,45 +836,24 @@
             }
         }
 
-        // Atraer monedas con imán
-        function attractCoinsWithMagnet() {
-            if (!activePowerUps.magnet.active) return;
-
-            const birdCenterX = 100 + birdSize / 2;
-            const birdCenterY = birdY + birdSize / 2;
-            const magnetRadius = 300;
-
-            for (let i = coins.length - 1; i >= 0; i--) {
-                const coin = coins[i];
-                const coinCenterX = coin.x + 10;
-                const coinCenterY = coin.y + 10;
-
-                // Calcular distancia al pájaro
-                const dx = birdCenterX - coinCenterX;
-                const dy = birdCenterY - coinCenterY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                // Si está en el radio del imán
-                if (distance < magnetRadius) {
-                    // Mover moneda hacia el pájaro
-                    const speed = 5 * (1 - distance / magnetRadius); // Más rápido cuanto más cerca
-                    coin.x += dx / distance * speed;
-                    coin.y += dy / distance * speed;
-                    coin.element.style.left = coin.x + 'px';
-                    coin.element.style.top = coin.y + 'px';
-                }
-            }
-        }
-
         // Bucle principal del juego
         function gameLoop(timestamp) {
             if (!gameRunning) return;
 
+            // Calcular delta time en segundos (para que sea independiente de FPS)
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            let delta = (timestamp - lastFrameTime) / 1000; // en segundos
+            if (isNaN(delta) || !isFinite(delta) || delta <= 0) delta = 1 / 60;
+            lastFrameTime = timestamp;
+
+            if (isNaN(birdY)) birdY = 300;
+            if (isNaN(birdVelocity)) birdVelocity = 0;
+
             animationId = requestAnimationFrame(gameLoop);
 
-            // Mover el pájaro
-            birdVelocity += gravity;
-            birdY += birdVelocity;
+            // Mover el pájaro usando delta time
+            birdVelocity += gravity * delta; // Ajusta la gravedad para que se sienta igual que antes
+            birdY += birdVelocity * delta;   // Ajusta la velocidad para que se sienta igual que antes
             bird.style.top = birdY + 'px';
 
             // Verificar colisiones con los bordes
@@ -860,9 +862,9 @@
                 birdVelocity = 0;
             } else if (birdY + birdSize > gameHeight) {
                 birdY = gameHeight - birdSize;
-                birdVelocity = 0;
-                if (birdVelocity > 0 && !activePowerUps.shield.active) {
+                if (birdVelocity > 0 && !activePowerUps.shield.active && !activePowerUps.turbo.active) {
                     gameOver();
+                    return; // <-- IMPORTANTE: salir del bucle para evitar que el pájaro quede estático
                 }
             }
 
@@ -885,21 +887,21 @@
             }
 
             // Mover y verificar tuberías
-            movePipes();
+            movePipes(delta);
             if (!activePowerUps.shield.active && !activePowerUps.turbo.active) {
                 checkPipeCollision();
             }
 
             // Mover y verificar monedas
-            moveCoins();
+            moveCoins(delta);
             checkCoinCollision();
 
             // Mover y verificar power-ups
-            movePowerups();
+            movePowerups(delta);
             checkPowerupCollision();
 
             // Atraer monedas si hay imán activo
-            attractCoinsWithMagnet();
+            attractCoinsWithMagnet(delta);
 
             // Verificar power-ups activos
             checkActivePowerUps();
@@ -935,10 +937,10 @@
         }
 
         // Mover tuberías
-        function movePipes() {
+        function movePipes(delta) {
             for (let i = pipes.length - 1; i >= 0; i--) {
                 const pipe = pipes[i];
-                pipe.x -= pipeSpeed;
+                pipe.x -= pipeSpeed * delta * 60;
                 pipe.top.style.left = pipe.x + 'px';
                 pipe.bottom.style.left = pipe.x + 'px';
 
@@ -970,6 +972,65 @@
                     pipe.top.remove();
                     pipe.bottom.remove();
                     pipes.splice(i, 1);
+                }
+            }
+        }
+
+        // Mover monedas
+        function moveCoins(delta) {
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                coin.x -= coinSpeed * delta * 60;
+                coin.element.style.left = coin.x + 'px';
+
+                if (coin.x < -20) {
+                    coin.element.remove();
+                    coins.splice(i, 1);
+                }
+            }
+        }
+
+        // Mover power-ups
+        function movePowerups(delta) {
+            for (let i = powerups.length - 1; i >= 0; i--) {
+                const pu = powerups[i];
+                pu.x -= pipeSpeed * delta * 60;
+                pu.element.style.left = pu.x + 'px';
+
+                // Eliminar power-ups fuera de la pantalla
+                if (pu.x < -25) {
+                    pu.element.remove();
+                    powerups.splice(i, 1);
+                }
+            }
+        }
+
+        // Atraer monedas con imán
+        function attractCoinsWithMagnet(delta) {
+            if (!activePowerUps.magnet.active) return;
+
+            const birdCenterX = 100 + birdSize / 2;
+            const birdCenterY = birdY + birdSize / 2;
+            const magnetRadius = 300;
+
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                const coinCenterX = coin.x + 10;
+                const coinCenterY = coin.y + 10;
+
+                // Calcular distancia al pájaro
+                const dx = birdCenterX - coinCenterX;
+                const dy = birdCenterY - coinCenterY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Si está en el radio del imán
+                if (distance < magnetRadius) {
+                    // Mover moneda hacia el pájaro
+                    const speed = 5 * (1 - distance / magnetRadius) * delta * 60; // Más rápido cuanto más cerca
+                    coin.x += dx / distance * speed;
+                    coin.y += dy / distance * speed;
+                    coin.element.style.left = coin.x + 'px';
+                    coin.element.style.top = coin.y + 'px';
                 }
             }
         }
@@ -1053,20 +1114,6 @@
                     x: coinX,
                     y: coinY
                 });
-            }
-        }
-
-        // Mover monedas
-        function moveCoins() {
-            for (let i = coins.length - 1; i >= 0; i--) {
-                const coin = coins[i];
-                coin.x -= coinSpeed;
-                coin.element.style.left = coin.x + 'px';
-
-                if (coin.x < -20) {
-                    coin.element.remove();
-                    coins.splice(i, 1);
-                }
             }
         }
 
