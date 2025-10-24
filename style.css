@@ -1,241 +1,273 @@
 body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #c59371;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #c59371;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
 
-        #game-container {
-            position: relative;
-            width: 400px;
-            height: 600px;
-            background-color: #87CEEB;
-            overflow: hidden;
-            border: 3px solid #000;
-        }
+#game-container {
+    position: relative;
+    width: 400px;
+    height: 600px;
+    background-color: #87CEEB;
+    overflow: hidden;
+    border: 3px solid #000;
+}
 
-        #bird {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background-color: red;
-            border-radius: 50%;
-            z-index: 10;
-            filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.5));
-            /* transition: all 0.2s ease; */
-        }
+#bird {
+    position: absolute;
+    /* Se quitan top y left, se manejarán con transform */
+    width: 30px;
+    height: 30px;
+    background-color: red;
+    border-radius: 50%;
+    z-index: 10;
+    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.5));
+    /* transition: all 0.2s ease; */
+}
 
-        /* Efectos para power-ups */
-        #bird.shield {
-            animation: pulse 0.5s infinite alternate;
-            box-shadow: 0 0 10px 5px rgba(255, 255, 0, 0.7);
-        }
+/* Efectos para power-ups */
+#bird.shield {
+    animation: pulse 0.3s infinite alternate;
+    box-shadow: 0 0 10px 5px rgba(255, 255, 0, 0.7);
+}
 
-        #bird.turbo {
-            box-shadow: 0 0 15px 5px rgba(255, 100, 0, 0.8);
-        }
+#bird.turbo {
+    box-shadow: 0 0 15px 5px rgba(255, 81, 0, 0.8);
+}
 
-        #bird.magnet {
-            box-shadow: 0 0 15px 5px rgba(0, 200, 255, 0.7);
-        }
+#bird.magnet {
+    box-shadow: 0 0 15px 5px rgba(0, 200, 255, 0.7);
+}
 
-        @keyframes pulse {
-            from {
-                transform: scale(1);
-            }
+@keyframes pulse {
+    from {
+        transform: scale(1);
+    }
 
-            to {
-                transform: scale(1.1);
-            }
-        }
+    to {
+        transform: scale(1.1);
+    }
+}
 
-        .pipe {
-            position: absolute;
-            width: 60px;
-            background-color: green;
-        }
+.pipe {
+    position: absolute;
+    /* Se quita left, se manejará con transform */
+    top: 0;
+    /* 'top' se sigue usando para el 'bottomPipe' */
+    width: 60px;
+    background-color: #70401f;
+    border-radius: 8px;
+}
 
-        .coin {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background-color: gold;
-            border-radius: 50%;
-            z-index: 5;
-            filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
-        }
+.coin {
+    position: absolute;
+    /* Se quita left y top, se manejará con transform */
+    width: 20px;
+    height: 20px;
+    background-color: gold;
+    border-radius: 50%;
+    z-index: 5;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
 
-        .power-up {
-            position: absolute;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            z-index: 5;
-            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
-            animation: float 2s infinite ease-in-out;
-        }
+.power-up {
+    position: absolute;
+    /* Se quita left y top, se manejará con transform */
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    z-index: 5;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+    animation: float 2s infinite ease-in-out;
+}
 
-        @keyframes float {
+@keyframes float {
 
-            0%,
-            100% {
-                transform: translateY(0);
-            }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
 
-            50% {
-                transform: translateY(-5px);
-            }
-        }
+    50% {
+        /* Se ajusta para que la animación 'float' 
+                   no interfiera con el 'translate' principal */
+        transform: translateY(-5px);
+    }
+}
 
-        #score-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            z-index: 20;
-        }
+#score-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+}
 
-        #powerup-container {
-            position: absolute;
-            top: 30px;
-            right: 10px;
-            font-size: 16px;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            z-index: 20;
-            background-color: rgba(0, 0, 0, 0.3);
-            padding: 5px 10px;
-            border-radius: 10px;
-        }
+#powerup-container {
+    position: absolute;
+    top: 30px;
+    right: 10px;
+    font-size: 16px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 5px 10px;
+    border-radius: 10px;
+}
 
-        #game-over,
-        #start-screen,
-        #customize-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 30;
-            color: white;
-        }
+#game-over,
+#start-screen,
+#customize-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    color: white;
+}
 
-        #customize-screen {
-            display: none;
-        }
+#customize-screen {
+    display: none;
+}
 
-        #game-over {
-            display: none;
-        }
+#game-over {
+    display: none;
+}
 
-        #game-over h1,
-        #start-screen h1,
-        #customize-screen h1 {
-            font-size: 36px;
-            margin-bottom: 20px;
-        }
+#game-over h1,
+#start-screen h1,
+#customize-screen h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
 
-        #start-screen {
-            text-align: center;
-        }
+#start-screen {
+    text-align: center;
+}
 
-        #restart-btn,
-        #start-btn,
-        #customize-btn,
-        #save-customize-btn,
-        #customize-end-btn,
-        #instructions-btn,
-        #instructions-end-btn {
-            padding: 10px 20px;
-            font-size: 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-            transition: transform 0.2s, background-color 0.2s;
-        }
+#restart-btn,
+#start-btn,
+#customize-btn,
+#save-customize-btn,
+#customize-end-btn,
+#instructions-btn,
+#instructions-end-btn {
+    padding: 10px 20px;
+    font-size: 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+    transition: transform 0.2s, background-color 0.2s;
+}
 
-        #restart-btn:hover,
-        #start-btn:hover,
-        #customize-btn:hover,
-        #save-customize-btn:hover,
-        #customize-end-btn:hover,
-        #instructions-btn:hover,
-        #instructions-end-btn:hover {
-            background-color: #45a049;
-            transform: scale(1.05);
-        }
+#restart-btn:hover,
+#start-btn:hover,
+#customize-btn:hover,
+#save-customize-btn:hover,
+#customize-end-btn:hover,
+#instructions-btn:hover,
+#instructions-end-btn:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+}
 
-        #speed-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 18px;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            z-index: 20;
-        }
+#speed-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 18px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+}
 
-        .color-option {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin: 10px;
-            cursor: pointer;
-            border: 2px solid white;
-            transition: transform 0.2s;
-        }
+.color-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin: 10px;
+    cursor: pointer;
+    border: 2px solid white;
+    transition: transform 0.2s;
+}
 
-        .color-option:hover {
-            transform: scale(1.1);
-        }
+.color-option:hover {
+    transform: scale(1.1);
+}
 
-        .color-option.selected {
-            border: 2px solid yellow;
-            box-shadow: 0 0 10px yellow;
-        }
+.color-option.selected {
+    border: 2px solid yellow;
+    box-shadow: 0 0 10px yellow;
+}
 
-        #color-palette {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 20px 0;
-            max-width: 300px;
-        }
+#color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+    max-width: 300px;
+}
 
-        .button-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-        }
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
 
-        #instructions-modal {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 40;
-            color: #fff;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+#instructions-modal {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 40;
+    color: #fff;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- NUEVO: Animación de advertencia --- */
+@keyframes flash-warning {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/* Clase para parpadear (para Turbo y Magnet) */
+.flashing {
+    animation: flash-warning 0.5s infinite;
+}
+
+/* Combinar parpadeo con la animación 'pulse' del escudo */
+#bird.shield.flashing {
+    animation: pulse 0.5s infinite alternate, flash-warning 0.5s infinite;
+}

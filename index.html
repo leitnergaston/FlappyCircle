@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flappy Circle v1.3</title>
+    <title>Flappy Circle 23.10v</title>
 
     <link rel="stylesheet" href="style.css">
 
@@ -36,7 +36,7 @@
             <div id="color-palette">
                 <div class="color-option selected" style="background-color: red;" data-color="red"></div>
                 <div class="color-option" style="background-color: blue;" data-color="blue"></div>
-                <div class="color-option" style="background-color: green;" data-color="green"></div>
+                <div class="color-option" style="background-color: #23c423;" data-color="green"></div>
                 <div class="color-option" style="background-color: darkorange;" data-color="darkorange"></div>
                 <div class="color-option" style="background-color: purple;" data-color="purple"></div>
                 <div class="color-option" style="background-color: darkred;" data-color="darkred"></div>
@@ -44,6 +44,7 @@
                 <div class="color-option" style="background-color: #3D4D9D;" data-color="#3D4D9D"></div>
                 <div class="color-option" style="background-color: white;" data-color="white"></div>
                 <div class="color-option" style="background-color: black;" data-color="black"></div>
+                <div class="color-option" style="background-color: #ddeb1e;" data-color="#ddeb1e"></div>
             </div>
             <button id="save-customize-btn">Guardar y Volver</button>
         </div>
@@ -60,7 +61,6 @@
             </div>
         </div>
 
-        <!-- modal instrucciones -->
         <div id="instructions-modal">
             <div
                 style="background:rgba(30,30,30,0.95); border-radius:16px; padding:32px 24px; max-width:340px; box-shadow:0 0 20px #000; text-align:left; position:relative;">
@@ -77,7 +77,6 @@
                 <ul style="padding-left:18px;">
                     <li>
                         <span style="vertical-align:middle; display:inline-block; width:25px; height:25px;">
-                            <!-- Shield SVG -->
                             <svg width="25" height="25" viewBox="0 0 32 32">
                                 <ellipse cx="16" cy="16" rx="14" ry="14" fill="gold" stroke="#ed3a13"
                                     stroke-width="3" />
@@ -117,11 +116,10 @@
         </div>
     </div>
 
-    <!-- banner de actualizaciones -->
     <div id="update-banner"
         style="display:none; position:fixed; bottom:0; left:0; width:100%; background:rgba(30,30,30,0.97); color:#fff; z-index:1000; padding:18px 0; box-shadow:0 -2px 12px #000; text-align:center; font-size:18px;">
         <span id="update-banner-message">
-            ¡Nueva versión disponible! <b>Flappy Circle v1.3</b> trae mejoras y correcciones.<br>
+            ¡Nueva versión disponible! <b>Flappy Circle 23.10</b> trae mejoras y correcciones.<br>
             <span style="font-size:15px; color:#ffe082;">Recarga la página para disfrutar la última versión.</span>
         </span>
         <button id="update-banner-accept"
