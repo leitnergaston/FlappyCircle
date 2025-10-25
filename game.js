@@ -1,5 +1,5 @@
 // --- Versión y Banner ---
-const GAME_VERSION = "1.3";
+const GAME_VERSION = "24.10";
 const VERSION_KEY = "flappycircle_version_accepted";
 
 function checkUpdateBanner() {
@@ -68,9 +68,9 @@ const DELTA_MULTIPLIER = 60;
 const MAGNET_ATTRACT_SPEED_FACTOR = 10; // Original era 5
 
 // Duración de Power-ups
-const SHIELD_DURATION = 4000; // ms
+const SHIELD_DURATION = 5000; // ms
 const MAGNET_DURATION = 5000; // ms
-const MAGNET_RADIUS = 300; // px
+const MAGNET_RADIUS = 350; // px
 const TURBO_PIPES = 5;
 
 // --- MEJORA 4: Tiempo de aviso ---
@@ -659,6 +659,11 @@ function activatePowerUp(type) {
                 gameState.pipeSpeed = BASE_PIPE_SPEED * gameState.gameSpeed;
                 gameState.coinSpeed = BASE_COIN_SPEED * gameState.gameSpeed;
                 bird.classList.add('turbo');
+
+                // --- ¡AQUÍ ESTÁ EL ARREGLO 1! ---
+                // Actualiza el indicador de velocidad al activar el turbo
+                speedIndicator.textContent = 'Velocidad: ' + gameState.gameSpeed.toFixed(1) + 'x';
+
             } else {
                 // Ya está activo: solo acumula más tuberías al contador
                 gameState.activePowerUps.turbo.targetPipes += TURBO_PIPES;
@@ -695,6 +700,11 @@ function deactivatePowerUp(type) {
                 gameState.pipeFrequencyBeforeTurbo = null;
             }
             bird.classList.remove('turbo');
+
+            // --- ¡AQUÍ ESTÁ EL ARREGLO 2! ---
+            // Actualiza el indicador de velocidad al desactivar el turbo
+            speedIndicator.textContent = 'Velocidad: ' + gameState.gameSpeed.toFixed(1) + 'x';
+
             break;
 
         case 'magnet':

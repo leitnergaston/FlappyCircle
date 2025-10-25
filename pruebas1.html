@@ -259,8 +259,15 @@
 
         /* --- NUEVO: Animación de advertencia --- */
         @keyframes flash-warning {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
         }
 
         /* Clase para parpadear (para Turbo y Magnet) */
@@ -456,17 +463,17 @@
         const BASE_COIN_SPEED = 2;
         const SPEED_INCREASE_INTERVAL = 10; // tuberías
         const MAX_SPEED = 3;
-        const DELTA_MULTIPLIER = 60; 
-        
+        const DELTA_MULTIPLIER = 60;
+
         // --- MEJORA 1: Imán más rápido ---
         const MAGNET_ATTRACT_SPEED_FACTOR = 10; // Original era 5
 
         // Duración de Power-ups
-        const SHIELD_DURATION = 4000; // ms
+        const SHIELD_DURATION = 5000; // ms
         const MAGNET_DURATION = 5000; // ms
-        const MAGNET_RADIUS = 300; // px
+        const MAGNET_RADIUS = 350; // px
         const TURBO_PIPES = 5;
-        
+
         // --- MEJORA 4: Tiempo de aviso ---
         const POWERUP_WARNING_TIME = 1500; // 1.5 segundos
 
@@ -495,8 +502,8 @@
             lastPowerupTime: 0,
             animationId: null,
             gameSpeed: 1,
-            pipeSpeed: BASE_PIPE_SPEED, 
-            coinSpeed: BASE_COIN_SPEED, 
+            pipeSpeed: BASE_PIPE_SPEED,
+            coinSpeed: BASE_COIN_SPEED,
             pipesPassedSinceLastSpeedIncrease: 0,
             lastFrameTime: null,
             selectedColor: 'red',
@@ -719,7 +726,7 @@
             }
 
             // --- Movimiento y Colisiones ---
-            
+
             // *** MEJORA 2: Delay del Turbo (Orden invertido) ***
             // 1. Chequear colisión (mientras el turbo AÚN está activo)
             if (!gameState.activePowerUps.shield.active && !gameState.activePowerUps.turbo.active) {
@@ -776,7 +783,7 @@
                 pipe.top.style.left = pipe.x + 'px';
                 pipe.bottom.style.left = pipe.x + 'px';
 
-                if (!pipe.passed && pipe.x < BIRD_START_X - BIRD_SIZE) { 
+                if (!pipe.passed && pipe.x < BIRD_START_X - BIRD_SIZE) {
                     pipe.passed = true;
                     gameState.score++;
                     gameState.pipesPassedSinceLastSpeedIncrease++;
@@ -1028,13 +1035,13 @@
         // *** MEJORA 3: Power-ups Acumulables (Función modificada) ***
         function activatePowerUp(type) {
             const now = Date.now(); // Necesario para acumular
-            
+
             switch (type) {
                 case 'shield':
                     // Acumula tiempo: si está activo, añade duración al final. Si no, crea uno nuevo.
                     let currentShieldEnd = gameState.activePowerUps.shield.endTime;
                     let newShieldEnd = (currentShieldEnd > now) ? currentShieldEnd + SHIELD_DURATION : now + SHIELD_DURATION;
-                    
+
                     gameState.activePowerUps.shield.active = true;
                     gameState.activePowerUps.shield.endTime = newShieldEnd;
                     bird.classList.add('shield');
@@ -1048,11 +1055,16 @@
                         gameState.activePowerUps.turbo.targetPipes = TURBO_PIPES; // Set inicial
                         gameState.activePowerUps.turbo.originalSpeed = gameState.gameSpeed;
                         gameState.pipeFrequencyBeforeTurbo = gameState.pipeFrequency;
-                        
+
                         gameState.gameSpeed = Math.min(gameState.gameSpeed * 2, MAX_SPEED * 1.5);
                         gameState.pipeSpeed = BASE_PIPE_SPEED * gameState.gameSpeed;
                         gameState.coinSpeed = BASE_COIN_SPEED * gameState.gameSpeed;
                         bird.classList.add('turbo');
+
+                        // --- ¡AQUÍ ESTÁ EL ARREGLO 1! ---
+                        // Actualiza el indicador de velocidad al activar el turbo
+                        speedIndicator.textContent = 'Velocidad: ' + gameState.gameSpeed.toFixed(1) + 'x';
+
                     } else {
                         // Ya está activo: solo acumula más tuberías al contador
                         gameState.activePowerUps.turbo.targetPipes += TURBO_PIPES;
@@ -1063,7 +1075,7 @@
                     // Acumula tiempo: igual que el escudo
                     let currentMagnetEnd = gameState.activePowerUps.magnet.endTime;
                     let newMagnetEnd = (currentMagnetEnd > now) ? currentMagnetEnd + MAGNET_DURATION : now + MAGNET_DURATION;
-                    
+
                     gameState.activePowerUps.magnet.active = true;
                     gameState.activePowerUps.magnet.endTime = newMagnetEnd;
                     bird.classList.add('magnet');
@@ -1089,6 +1101,11 @@
                         gameState.pipeFrequencyBeforeTurbo = null;
                     }
                     bird.classList.remove('turbo');
+
+                    // --- ¡AQUÍ ESTÁ EL ARREGLO 2! ---
+                    // Actualiza el indicador de velocidad al desactivar el turbo
+                    speedIndicator.textContent = 'Velocidad: ' + gameState.gameSpeed.toFixed(1) + 'x';
+
                     break;
 
                 case 'magnet':
