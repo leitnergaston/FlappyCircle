@@ -1,5 +1,5 @@
 // --- Versión y Banner ---
-const GAME_VERSION = "24.10";
+const GAME_VERSION = "26.10";
 const VERSION_KEY = "flappycircle_version_accepted";
 
 function checkUpdateBanner() {
@@ -41,6 +41,26 @@ const customizeEndBtn = document.getElementById('customize-end-btn');
 const saveCustomizeBtn = document.getElementById('save-customize-btn');
 const colorOptions = document.querySelectorAll('.color-option');
 
+const sounds = {
+    jump: new Audio('/sounds/jump.mp3'),
+    coin: new Audio('/sounds/coin.mp3'),
+    die: new Audio('/sounds/die.mp3'),
+
+    powerupShield: new Audio('/sounds/shield.mp3'),
+    powerupTurbo: new Audio('/sounds/turbo.mp3'),
+    powerupMagnet: new Audio('/sounds/magnet.mp3'),
+
+    incrementoVelocidad: new Audio('/sounds/incrementoVelocidad.mp3')
+};
+
+// Opcional: Ajustar el volumen si suenan muy fuerte
+sounds.coin.volume = 0.4;
+sounds.jump.volume = 0.4;
+sounds.powerupShield.volume = 0.6;
+sounds.powerupTurbo.volume = 0.6;
+sounds.powerupMagnet.volume = 0.6;
+sounds.incrementoVelocidad.volume = 0.6;
+
 // --- Constantes del Juego ---
 const BIRD_START_X = 100;
 const BIRD_START_Y = 300;
@@ -60,12 +80,12 @@ const POWERUP_FREQUENCY = 5000; // ms
 // Constantes de velocidad
 const BASE_PIPE_SPEED = 2;
 const BASE_COIN_SPEED = 2;
-const SPEED_INCREASE_INTERVAL = 10; // tuberías
+const SPEED_INCREASE_INTERVAL = 12; // incrementar velocidad del juego al pasar x tuberías
 const MAX_SPEED = 3;
 const DELTA_MULTIPLIER = 60;
 
-// --- MEJORA 1: Imán más rápido ---
-const MAGNET_ATTRACT_SPEED_FACTOR = 10; // Original era 5
+// Imán más rápido ---
+const MAGNET_ATTRACT_SPEED_FACTOR = 10;
 
 // Duración de Power-ups
 const SHIELD_DURATION = 5000; // ms
@@ -73,7 +93,7 @@ const MAGNET_DURATION = 5000; // ms
 const MAGNET_RADIUS = 350; // px
 const TURBO_PIPES = 5;
 
-// --- MEJORA 4: Tiempo de aviso ---
+// Tiempo de aviso ---
 const POWERUP_WARNING_TIME = 1500; // 1.5 segundos
 
 // Otros
@@ -105,7 +125,8 @@ const gameState = {
     coinSpeed: BASE_COIN_SPEED,
     pipesPassedSinceLastSpeedIncrease: 0,
     lastFrameTime: null,
-    selectedColor: 'red',
+    selectedEmoji: '🐦',
+    isReady: false,
     activePowerUps: {
         shield: { active: false, endTime: 0 },
         turbo: { active: false, pipesPassed: 0, targetPipes: TURBO_PIPES, originalSpeed: 1 },
@@ -116,7 +137,7 @@ const gameState = {
 // --- Inicialización ---
 bird.style.left = BIRD_START_X + 'px';
 bird.style.top = gameState.birdY + 'px';
-bird.style.backgroundColor = gameState.selectedColor;
+bird.textContent = gameState.selectedEmoji;
 
 // --- Event Listeners ---
 startBtn.addEventListener('click', startGame);
@@ -129,9 +150,30 @@ instructionsEndBtn.addEventListener('click', showInstructions);
 closeInstructionsBtn.addEventListener('click', hideInstructions);
 
 document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && gameState.gameRunning) {
-        e.preventDefault();
+    if (e.code !== 'Space') return; // Ignorar otras teclas
+    e.preventDefault(); // Prevenir scroll siempre
+
+    if (gameState.isReady && !gameState.gameRunning) {
+        // --- Primer Salto: Iniciar el juego ---
+        gameState.isReady = false;
+        gameState.gameRunning = true;
+        document.getElementById('ready-message').style.display = 'none';
+
         gameState.birdVelocity = JUMP_FORCE;
+        sounds.jump.currentTime = 0;
+        sounds.jump.play();
+
+        // Iniciar el bucle del juego AHORA
+        gameState.lastFrameTime = performance.now();
+        gameLoop(gameState.lastFrameTime);
+
+    } else if (gameState.gameRunning) {
+        // --- Salto normal durante el juego ---
+        gameState.birdVelocity = JUMP_FORCE;
+
+        // efecto de sonido
+        sounds.jump.currentTime = 0;
+        sounds.jump.play();
     }
 });
 
@@ -139,8 +181,12 @@ gameContainer.addEventListener('touchstart', handleJumpEvent, { passive: false }
 gameContainer.addEventListener('click', handleJumpEvent);
 
 function handleJumpEvent(e) {
-    if (!gameState.gameRunning) return;
+    // Si el juego no está corriendo Y no está listo, ignorar
+    if (!gameState.gameRunning && !gameState.isReady) return;
+
+    // Ignorar si se pulsa sobre botones
     const target = e.target;
+
     if (
         target.closest('#start-btn') ||
         target.closest('#restart-btn') ||
@@ -153,16 +199,40 @@ function handleJumpEvent(e) {
     ) {
         return;
     }
-    e.preventDefault();
-    gameState.birdVelocity = JUMP_FORCE;
+    e.preventDefault(); // prevenir scroll/zoom
+
+    if (gameState.isReady && !gameState.gameRunning) {
+        // --- Primer Salto: Iniciar el juego ---
+        gameState.isReady = false;
+        gameState.gameRunning = true;
+        document.getElementById('ready-message').style.display = 'none';
+
+        gameState.birdVelocity = JUMP_FORCE;
+        sounds.jump.currentTime = 0;
+        sounds.jump.play();
+
+        // Iniciar el bucle del juego AHORA
+        gameState.lastFrameTime = performance.now();
+        gameLoop(gameState.lastFrameTime);
+
+    } else if (gameState.gameRunning) {
+        // --- Salto normal durante el juego ---
+        gameState.birdVelocity = JUMP_FORCE;
+
+        // efecto de sonido
+        sounds.jump.currentTime = 0;
+        sounds.jump.play();
+    }
+
+
 }
 
 colorOptions.forEach(option => {
     option.addEventListener('click', () => {
         colorOptions.forEach(opt => opt.classList.remove('selected'));
         option.classList.add('selected');
-        gameState.selectedColor = option.dataset.color;
-        bird.style.backgroundColor = gameState.selectedColor;
+        gameState.selectedEmoji = option.dataset.emoji;
+        bird.textContent = gameState.selectedEmoji;
     });
 });
 
@@ -188,7 +258,7 @@ function saveCustomization() {
     } else {
         startScreen.style.display = 'flex';
     }
-    bird.style.backgroundColor = gameState.selectedColor;
+    bird.textContent = gameState.selectedEmoji;
 }
 
 function showInstructions() {
@@ -203,7 +273,7 @@ function hideInstructions() {
 // --- Funciones Principales del Juego ---
 
 function startGame() {
-    if (gameState.gameRunning) return;
+    if (gameState.gameRunning || gameState.isReady) return; // Evitar doble clic
 
     // Resetear estado del juego
     gameState.birdY = BIRD_START_Y;
@@ -231,6 +301,7 @@ function startGame() {
     updatePowerupIndicator();
     bird.className = '';
     bird.style.top = gameState.birdY + 'px';
+    bird.textContent = gameState.selectedEmoji;
 
 
     // Limpiar elementos del DOM
@@ -247,8 +318,10 @@ function startGame() {
     gameOverScreen.style.display = 'none';
     customizeScreen.style.display = 'none';
 
-    gameState.gameRunning = true;
-    gameLoop(performance.now());
+    // No iniciamos el juego, solo lo preparamos
+    document.getElementById('ready-message').style.display = 'block';
+    gameState.isReady = true;
+    gameState.gameRunning = false;
 }
 
 function restartGame() {
@@ -259,6 +332,10 @@ function restartGame() {
 }
 
 function gameOver() {
+    // efecto de sonido
+    sounds.die.play();
+
+
     gameState.gameRunning = false;
     finalScoreElement.textContent = gameState.score;
     finalCoinsElement.textContent = gameState.coinsCollected;
@@ -269,6 +346,10 @@ function gameOver() {
 }
 
 function increaseSpeed() {
+
+    // efecto de sonido
+    sounds.incrementoVelocidad.play();
+
     if (gameState.gameSpeed >= MAX_SPEED) return;
 
     gameState.gameSpeed += 0.2;
@@ -326,14 +407,13 @@ function gameLoop(timestamp) {
 
     // --- Movimiento y Colisiones ---
 
-    // *** MEJORA 2: Delay del Turbo (Orden invertido) ***
+    // Delay del Turbo (Orden invertido) ***
     // 1. Chequear colisión (mientras el turbo AÚN está activo)
     if (!gameState.activePowerUps.shield.active && !gameState.activePowerUps.turbo.active) {
         checkPipeCollision();
     }
     // 2. Mover tuberías (aquí el turbo puede desactivarse DESPUÉS de pasar)
     movePipes(delta);
-    // *** FIN DEL CAMBIO ***
 
     moveCoins(delta);
     checkCoinCollision();
@@ -342,7 +422,7 @@ function gameLoop(timestamp) {
     movePowerups(delta);
     checkPowerupCollision();
 
-    // --- MEJORA 4: Chequeo de Power-ups (parpadeo) ---
+    // Chequeo de Power-ups (parpadeo) ---
     checkActivePowerUps();
 }
 
@@ -389,7 +469,7 @@ function movePipes(delta) {
 
             if (gameState.activePowerUps.turbo.active) {
                 gameState.activePowerUps.turbo.pipesPassed++;
-                // *** MEJORA 3: Stacking de Turbo ***
+                // Stacking de Turbo ***
                 // La desactivación ahora respeta el 'targetPipes' acumulado
                 if (gameState.activePowerUps.turbo.pipesPassed >= gameState.activePowerUps.turbo.targetPipes) {
                     deactivatePowerUp('turbo');
@@ -511,6 +591,10 @@ function checkCoinCollision() {
             gameState.coinsCollected++;
             coinsElement.textContent = gameState.coinsCollected;
             totalElement.textContent = gameState.score + (gameState.coinsCollected * 2);
+
+            // efecto de sonido
+            sounds.coin.currentTime = 0;
+            sounds.coin.play();
         }
     }
 }
@@ -531,7 +615,7 @@ function attractCoinsWithMagnet(delta) {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < MAGNET_RADIUS) {
-            // *** MEJORA 1: Velocidad de atracción aumentada ***
+            // Velocidad de atracción aumentada ***
             const speed = MAGNET_ATTRACT_SPEED_FACTOR * (1 - distance / MAGNET_RADIUS) * delta * DELTA_MULTIPLIER;
             coin.x += (dx / distance) * speed;
             coin.y += (dy / distance) * speed;
@@ -627,11 +711,25 @@ function checkPowerupCollision() {
             pu.element.remove();
             gameState.powerups.splice(i, 1);
             activatePowerUp(pu.type);
+
+            // efectos de sonido
+            // Usamos uno específico basado en el tipo
+            switch (pu.type) {
+                case 'shield':
+                    sounds.powerupShield.play();
+                    break;
+                case 'turbo':
+                    sounds.powerupTurbo.play();
+                    break;
+                case 'magnet':
+                    sounds.powerupMagnet.play();
+                    break;
+            }
         }
     }
 }
 
-// *** MEJORA 3: Power-ups Acumulables (Función modificada) ***
+// Power-ups Acumulables (Función modificada) ***
 function activatePowerUp(type) {
     const now = Date.now(); // Necesario para acumular
 
@@ -660,7 +758,6 @@ function activatePowerUp(type) {
                 gameState.coinSpeed = BASE_COIN_SPEED * gameState.gameSpeed;
                 bird.classList.add('turbo');
 
-                // --- ¡AQUÍ ESTÁ EL ARREGLO 1! ---
                 // Actualiza el indicador de velocidad al activar el turbo
                 speedIndicator.textContent = 'Velocidad: ' + gameState.gameSpeed.toFixed(1) + 'x';
 
@@ -701,7 +798,6 @@ function deactivatePowerUp(type) {
             }
             bird.classList.remove('turbo');
 
-            // --- ¡AQUÍ ESTÁ EL ARREGLO 2! ---
             // Actualiza el indicador de velocidad al desactivar el turbo
             speedIndicator.textContent = 'Velocidad: ' + gameState.gameSpeed.toFixed(1) + 'x';
 
@@ -716,7 +812,7 @@ function deactivatePowerUp(type) {
     updatePowerupIndicator();
 }
 
-// *** MEJORA 4: Aviso de Parpadeo (Función modificada) ***
+//  Aviso de Parpadeo
 function checkActivePowerUps() {
     const now = Date.now();
     let isFlashing = false; // Flag para controlar el parpadeo

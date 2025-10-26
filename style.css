@@ -21,38 +21,28 @@ body {
 
 #bird {
     position: absolute;
-    /* Se quitan top y left, se manejarán con transform */
     width: 30px;
     height: 30px;
-    background-color: red;
-    border-radius: 50%;
+    background-color: transparent;
+    font-size: 30px;
+    line-height: 30px;
+    text-align: center;
     z-index: 10;
+    transform: scaleX(-1);
     filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.5));
-    /* transition: all 0.2s ease; */
 }
 
 /* Efectos para power-ups */
 #bird.shield {
-    animation: pulse 0.3s infinite alternate;
-    box-shadow: 0 0 10px 5px rgba(255, 255, 0, 0.7);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 0, 1));
 }
 
 #bird.turbo {
-    box-shadow: 0 0 15px 5px rgba(255, 81, 0, 0.8);
+    filter: drop-shadow(0 0 10px rgba(255, 81, 0, 1));
 }
 
 #bird.magnet {
-    box-shadow: 0 0 15px 5px rgba(0, 200, 255, 0.7);
-}
-
-@keyframes pulse {
-    from {
-        transform: scale(1);
-    }
-
-    to {
-        transform: scale(1.1);
-    }
+    filter: drop-shadow(0 0 10px rgba(0, 200, 255, 1));
 }
 
 .pipe {
@@ -208,6 +198,10 @@ body {
     cursor: pointer;
     border: 2px solid white;
     transition: transform 0.2s;
+    font-size: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .color-option:hover {
@@ -264,10 +258,41 @@ body {
 
 /* Clase para parpadear (para Turbo y Magnet) */
 .flashing {
-    animation: flash-warning 0.5s infinite;
+    animation: flash-warning 0.4s infinite;
 }
 
 /* Combinar parpadeo con la animación 'pulse' del escudo */
 #bird.shield.flashing {
-    animation: pulse 0.5s infinite alternate, flash-warning 0.5s infinite;
+    animation: flash-warning 0.4s infinite;
+}
+
+/* --- estilo para mensaje de inicio de juego --- */
+#ready-message {
+    display: none;
+    /* Oculto por defecto */
+    position: absolute;
+    top: 60%;
+    /* Un poco más abajo del centro */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    z-index: 25;
+    /* Encima del juego, debajo de los menús */
+    animation: soft-blink 1.5s infinite ease-in-out;
+}
+
+/* --- ANIMACIÓN DE PARPADEO SUAVE al msje de inicio de juego --- */
+@keyframes soft-blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
 }

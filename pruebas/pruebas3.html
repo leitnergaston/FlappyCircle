@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Circle 24.10v</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #c59371;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background-color: #87CEEB;
+            overflow: hidden;
+            border: 3px solid #000;
+        }
+
+        #bird {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: transparent;
+            font-size: 30px;
+            line-height: 30px;
+            text-align: center;
+            z-index: 10;
+            transform: scaleX(-1);
+            filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.5));
+        }
+
+        /* Efectos para power-ups */
+        #bird.shield {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 0, 1));
+        }
+
+        #bird.turbo {
+            filter: drop-shadow(0 0 10px rgba(255, 81, 0, 1));
+        }
+
+        #bird.magnet {
+            filter: drop-shadow(0 0 10px rgba(0, 200, 255, 1));
+        }
+
+        .pipe {
+            position: absolute;
+            /* Se quita left, se manejará con transform */
+            top: 0;
+            /* 'top' se sigue usando para el 'bottomPipe' */
+            width: 60px;
+            background-color: #70401f;
+            border-radius: 8px;
+        }
+
+        .coin {
+            position: absolute;
+            /* Se quita left y top, se manejará con transform */
+            width: 20px;
+            height: 20px;
+            background-color: gold;
+            border-radius: 50%;
+            z-index: 5;
+            filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+        }
+
+        .power-up {
+            position: absolute;
+            /* Se quita left y top, se manejará con transform */
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            z-index: 5;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+            animation: float 2s infinite ease-in-out;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                /* Se ajusta para que la animación 'float' 
+                   no interfiera con el 'translate' principal */
+                transform: translateY(-5px);
+            }
+        }
+
+        #score-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+
+        #powerup-container {
+            position: absolute;
+            top: 30px;
+            right: 10px;
+            font-size: 16px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+
+        #game-over,
+        #start-screen,
+        #customize-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            color: white;
+        }
+
+        #customize-screen {
+            display: none;
+        }
+
+        #game-over {
+            display: none;
+        }
+
+        #game-over h1,
+        #start-screen h1,
+        #customize-screen h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        #start-screen {
+            text-align: center;
+        }
+
+        #restart-btn,
+        #start-btn,
+        #customize-btn,
+        #save-customize-btn,
+        #customize-end-btn,
+        #instructions-btn,
+        #instructions-end-btn {
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        #restart-btn:hover,
+        #start-btn:hover,
+        #customize-btn:hover,
+        #save-customize-btn:hover,
+        #customize-end-btn:hover,
+        #instructions-btn:hover,
+        #instructions-end-btn:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        #speed-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 10px;
+            cursor: pointer;
+            border: 2px solid white;
+            transition: transform 0.2s;
+            font-size: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border: 2px solid yellow;
+            box-shadow: 0 0 10px yellow;
+        }
+
+        #color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+            max-width: 300px;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        #instructions-modal {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 40;
+            color: #fff;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- NUEVO: Animación de advertencia --- */
+        @keyframes flash-warning {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* Clase para parpadear (para Turbo y Magnet) */
+        .flashing {
+            animation: flash-warning 0.4s infinite;
+        }
+
+        /* Combinar parpadeo con la animación 'pulse' del escudo */
+        #bird.shield.flashing {
+            animation: flash-warning 0.4s infinite;
+        }
+
+        /* --- estilo para mensaje de inicio de juego --- */
+        #ready-message {
+            display: none;
+            /* Oculto por defecto */
+            position: absolute;
+            top: 60%;
+            /* Un poco más abajo del centro */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            z-index: 25;
+            /* Encima del juego, debajo de los menús */
+            animation: soft-blink 1.5s infinite ease-in-out;
+        }
+
+        /* --- ANIMACIÓN DE PARPADEO SUAVE al msje de inicio de juego --- */
+        @keyframes soft-blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="game-container">
+        <div id="bird">🐦</div>
+        <div id="score-container">
+            <div>Puntos: <span id="score">0</span></div>
+            <div>Monedas: <span id="coins">0</span></div>
+            <div>Total: <span id="total">0</span></div>
+        </div>
+        <div id="powerup-container">
+            Power-ups: <span id="active-powerups">Ninguno</span>
+        </div>
+        <div id="speed-indicator">Velocidad: 1x</div>
+        <div id="start-screen">
+            <h1>Flappy Circle</h1>
+            <p>Usa la barra espaciadora <br> o pulsa la pantalla para saltar</p>
+            <div class="button-container">
+                <button id="start-btn">Empezar</button>
+                <button id="customize-btn">Personaje</button>
+                <button id="instructions-btn">Instrucciones</button>
+            </div>
+        </div>
+        <div id="customize-screen">
+            <h1>Personalizar Personaje</h1>
+            <div id="color-palette">
+                <div class="color-option selected" data-emoji="🐦">🐦</div>
+                <div class="color-option" data-emoji="🐤">🐤</div>
+                <div class="color-option" data-emoji="🍆">🍆</div>
+                <div class="color-option" data-emoji="💩">💩</div>
+                <div class="color-option" data-emoji="🏀">🏀</div>
+                <div class="color-option" data-emoji="⚽">⚽</div>
+                <div class="color-option" data-emoji="👽">👽</div>
+                <div class="color-option" data-emoji="🧉">🧉</div>
+                <div class="color-option" data-emoji="😂">😂</div>
+                <div class="color-option" data-emoji="🎃">🎃</div>
+                <div class="color-option" data-emoji="🍌">🍌</div>
+            </div>
+            <button id="save-customize-btn">Guardar y Volver</button>
+        </div>
+        <div id="game-over">
+            <h1>Game Over</h1>
+            <p>Puntuación: <span id="final-score">0</span></p>
+            <p>Monedas: <span id="final-coins">0</span></p>
+            <p>Total: <span id="final-total">0</span></p>
+            <p>Velocidad máxima: <span id="final-speed">1x</span></p>
+            <div class="button-container">
+                <button id="restart-btn">Reiniciar</button>
+                <button id="customize-end-btn">Personaje</button>
+                <button id="instructions-end-btn">Instrucciones</button>
+            </div>
+        </div>
+
+        <div id="ready-message">
+            Pulsa para comenzar
+        </div>
+
+        <div id="instructions-modal">
+            <div
+                style="background:rgba(30,30,30,0.95); border-radius:16px; padding:32px 24px; max-width:340px; box-shadow:0 0 20px #000; text-align:left; position:relative;">
+                <h2 style="margin-top:0;">¿Cómo se juega?</h2>
+                <ul style="padding-left:18px;">
+                    <li><b>Salta</b> tocando la pantalla o pulsando la <b>barra espaciadora</b>.</li>
+                    <li>Evita las <b>tuberías verdes</b>.</li>
+                    <li>Recoge <span
+                            style="display:inline-block; vertical-align:middle; width:20px; height:20px; background:gold; border-radius:50%; box-shadow:0 0 2px #000; margin:0 2px;"></span>
+                        <b>monedas</b> para sumar <b>2 puntos</b> extra.
+                    </li>
+                </ul>
+                <h3 style="margin-bottom:6px;">Power-ups:</h3>
+                <ul style="padding-left:18px;">
+                    <li>
+                        <span style="vertical-align:middle; display:inline-block; width:25px; height:25px;">
+                            <svg width="25" height="25" viewBox="0 0 32 32">
+                                <ellipse cx="16" cy="16" rx="14" ry="14" fill="gold" stroke="#ed3a13"
+                                    stroke-width="3" />
+                                <path d="M16 6 Q24 10 16 28 Q8 10 16 6Z" fill="#fff59d" stroke="#ed3a13"
+                                    stroke-width="2" />
+                            </svg>
+                        </span>
+                        <b>Escudo:</b> Invencible por unos segundos.
+                    </li>
+                    <li>
+                        <span style="vertical-align:middle; display:inline-block; width:25px; height:25px;">
+                            <svg width="25" height="25" viewBox="0 0 32 32">
+                                <circle cx="16" cy="16" r="14" fill="orange" stroke="#d35400" stroke-width="3" />
+                                <polygon points="14,7 22,15 17,15 19,25 10,15 15,15" fill="#fff" stroke="#d35400"
+                                    stroke-width="1" />
+                            </svg>
+                        </span>
+                        <b>Turbo:</b> ¡Velocidad máxima e invencibilidad por 5 tuberías!
+                    </li>
+                    <li>
+                        <span style="vertical-align:middle; display:inline-block; width:25px; height:25px;">
+                            <svg width="25" height="25" viewBox="0 0 32 32">
+                                <circle cx="16" cy="16" r="14" fill="lightblue" stroke="#2980b9" stroke-width="3" />
+                                <path d="M10 20 Q8 12 16 12 Q24 12 22 20" fill="none" stroke="#2980b9"
+                                    stroke-width="4" />
+                                <rect x="8" y="18" width="4" height="6" fill="#fff" />
+                                <rect x="20" y="18" width="4" height="6" fill="#fff" />
+                            </svg>
+                        </span>
+                        <b>Imán:</b> Las monedas cercanas vuelan hacia ti.
+                    </li>
+                </ul>
+                <p style="margin-top:16px; font-size:15px; color:#ffe082;">¡Consigue la mayor puntuación posible!</p>
+                <button id="close-instructions-btn"
+                    style="margin-top:18px; padding:8px 22px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:6px; cursor:pointer;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="update-banner"
+        style="display:none; position:fixed; bottom:0; left:0; width:100%; background:rgba(30,30,30,0.97); color:#fff; z-index:1000; padding:18px 0; box-shadow:0 -2px 12px #000; text-align:center; font-size:18px;">
+        <span id="update-banner-message">
+            ¡Nueva versión disponible! <b>Flappy Circle 26.10</b> trae mejoras y correcciones.<br>
+            <span style="font-size:15px; color:#ffe082;">Recarga la página para disfrutar la última versión.</span>
+        </span>
+        <button id="update-banner-accept"
+            style="margin-left:18px; padding:7px 18px; font-size:17px; background:#4CAF50; color:white; border:none; border-radius:6px; cursor:pointer;">¡Entendido!</button>
+    </div>
+
+
+    <script>
+        // --- Versión y Banner ---
+        const GAME_VERSION = "26.10";
+        const VERSION_KEY = "flappycircle_version_accepted";
+
+        function checkUpdateBanner() {
+            const acceptedVersion = localStorage.getItem(VERSION_KEY);
+            if (acceptedVersion !== GAME_VERSION) {
+                document.getElementById('update-banner').style.display = 'block';
+            }
+        }
+        document.getElementById('update-banner-accept').addEventListener('click', function () {
+            localStorage.setItem(VERSION_KEY, GAME_VERSION);
+            document.getElementById('update-banner').style.display = 'none';
+        });
+        window.addEventListener('DOMContentLoaded', checkUpdateBanner);
+
+
+        // --- Elementos del DOM ---
+        const gameContainer = document.getElementById('game-container');
+        const bird = document.getElementById('bird');
+        const scoreElement = document.getElementById('score');
+        const coinsElement = document.getElementById('coins');
+        const totalElement = document.getElementById('total');
+        const speedIndicator = document.getElementById('speed-indicator');
+        const powerupIndicator = document.getElementById('active-powerups');
+        const startScreen = document.getElementById('start-screen');
+        const customizeScreen = document.getElementById('customize-screen');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalCoinsElement = document.getElementById('final-coins');
+        const finalTotalElement = document.getElementById('final-total');
+        const finalSpeedElement = document.getElementById('final-speed');
+        const restartBtn = document.getElementById('restart-btn');
+        const startBtn = document.getElementById('start-btn');
+        const instructionsModal = document.getElementById('instructions-modal');
+        const instructionsBtn = document.getElementById('instructions-btn');
+        const instructionsEndBtn = document.getElementById('instructions-end-btn');
+        const closeInstructionsBtn = document.getElementById('close-instructions-btn');
+        const customizeBtn = document.getElementById('customize-btn');
+        const customizeEndBtn = document.getElementById('customize-end-btn');
+        const saveCustomizeBtn = document.getElementById('save-customize-btn');
+        const colorOptions = document.querySelectorAll('.color-option');
+
+        const sounds = {
+            jump: new Audio('/sounds/jump.mp3'),
+            coin: new Audio('/sounds/coin.mp3'),
+            die: new Audio('/sounds/die.mp3'),
+
+            powerupShield: new Audio('/sounds/shield.mp3'),
+            powerupTurbo: new Audio('/sounds/turbo.mp3'),
+            powerupMagnet: new Audio('/sounds/magnet.mp3'),
+
+            incrementoVelocidad: new Audio('/sounds/incrementoVelocidad.mp3')
+        };
+
+        // Opcional: Ajustar el volumen si suenan muy fuerte
+        sounds.coin.volume = 0.4;
+        sounds.jump.volume = 0.4;
+        sounds.powerupShield.volume = 0.6;
+        sounds.powerupTurbo.volume = 0.6;
+        sounds.powerupMagnet.volume = 0.6;
+        sounds.incrementoVelocidad.volume = 0.6;
+
+        // --- Constantes del Juego ---
+        const BIRD_START_X = 100;
+        const BIRD_START_Y = 300;
+        const BIRD_SIZE = 30;
+        const PIPE_WIDTH = 60;
+        const COIN_SIZE = 20;
+        const POWERUP_SIZE = 25;
+
+        // Constantes de física
+        const GRAVITY = 1200;
+        const JUMP_FORCE = -400;
+        const BASE_PIPE_GAP = 150;
+        const BASE_PIPE_FREQUENCY = 1800; // ms
+        const COIN_FREQUENCY = 2500; // ms
+        const POWERUP_FREQUENCY = 5000; // ms
+
+        // Constantes de velocidad
+        const BASE_PIPE_SPEED = 2;
+        const BASE_COIN_SPEED = 2;
+        const SPEED_INCREASE_INTERVAL = 12; // incrementar velocidad del juego al pasar x tuberías
+        const MAX_SPEED = 3;
+        const DELTA_MULTIPLIER = 60;
+
+        // Imán más rápido ---
+        const MAGNET_ATTRACT_SPEED_FACTOR = 10;
+
+        // Duración de Power-ups
+        const SHIELD_DURATION = 5000; // ms
+        const MAGNET_DURATION = 5000; // ms
+        const MAGNET_RADIUS = 350; // px
+        const TURBO_PIPES = 5;
+
+        // Tiempo de aviso ---
+        const POWERUP_WARNING_TIME = 1500; // 1.5 segundos
+
+        // Otros
+        const BIRD_COLLISION_TOLERANCE = 0.30; // 30%
+
+        // Dimensiones del juego
+        const gameWidth = gameContainer.offsetWidth;
+        const gameHeight = gameContainer.offsetHeight;
+
+        // --- Objeto de Estado del Juego ---
+        const gameState = {
+            birdY: BIRD_START_Y,
+            birdVelocity: 0,
+            gameRunning: false,
+            pipes: [],
+            coins: [],
+            powerups: [],
+            score: 0,
+            coinsCollected: 0,
+            pipeGap: BASE_PIPE_GAP,
+            pipeFrequency: BASE_PIPE_FREQUENCY,
+            pipeFrequencyBeforeTurbo: null,
+            lastPipeTime: 0,
+            lastCoinTime: 0,
+            lastPowerupTime: 0,
+            animationId: null,
+            gameSpeed: 1,
+            pipeSpeed: BASE_PIPE_SPEED,
+            coinSpeed: BASE_COIN_SPEED,
+            pipesPassedSinceLastSpeedIncrease: 0,
+            lastFrameTime: null,
+            selectedEmoji: '🐦',
+            isReady: false,
+            activePowerUps: {
+                shield: { active: false, endTime: 0 },
+                turbo: { active: false, pipesPassed: 0, targetPipes: TURBO_PIPES, originalSpeed: 1 },
+                magnet: { active: false, endTime: 0 }
+            }
+        };
+
+        // --- Inicialización ---
+        bird.style.left = BIRD_START_X + 'px';
+        bird.style.top = gameState.birdY + 'px';
+        bird.textContent = gameState.selectedEmoji;
+
+        // --- Event Listeners ---
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', restartGame);
+        customizeBtn.addEventListener('click', showCustomizeScreen);
+        customizeEndBtn.addEventListener('click', showCustomizeScreen);
+        saveCustomizeBtn.addEventListener('click', saveCustomization);
+        instructionsBtn.addEventListener('click', showInstructions);
+        instructionsEndBtn.addEventListener('click', showInstructions);
+        closeInstructionsBtn.addEventListener('click', hideInstructions);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code !== 'Space') return; // Ignorar otras teclas
+            e.preventDefault(); // Prevenir scroll siempre
+
+            if (gameState.isReady && !gameState.gameRunning) {
+                // --- Primer Salto: Iniciar el juego ---
+                gameState.isReady = false;
+                gameState.gameRunning = true;
+                document.getElementById('ready-message').style.display = 'none';
+
+                gameState.birdVelocity = JUMP_FORCE;
+                sounds.jump.currentTime = 0;
+                sounds.jump.play();
+
+                // Iniciar el bucle del juego AHORA
+                gameState.lastFrameTime = performance.now();
+                gameLoop(gameState.lastFrameTime);
+
+            } else if (gameState.gameRunning) {
+                // --- Salto normal durante el juego ---
+                gameState.birdVelocity = JUMP_FORCE;
+
+                // efecto de sonido
+                sounds.jump.currentTime = 0;
+                sounds.jump.play();
+            }
+        });
+
+        gameContainer.addEventListener('touchstart', handleJumpEvent, { passive: false });
+        gameContainer.addEventListener('click', handleJumpEvent);
+
+        function handleJumpEvent(e) {
+            // Si el juego no está corriendo Y no está listo, ignorar
+            if (!gameState.gameRunning && !gameState.isReady) return;
+
+            // Ignorar si se pulsa sobre botones
+            const target = e.target;
+
+            if (
+                target.closest('#start-btn') ||
+                target.closest('#restart-btn') ||
+                target.closest('#customize-btn') ||
+                target.closest('#save-customize-btn') ||
+                target.closest('#customize-end-btn') ||
+                target.closest('#customize-screen') ||
+                target.closest('#game-over') ||
+                target.closest('#start-screen')
+            ) {
+                return;
+            }
+            e.preventDefault(); // prevenir scroll/zoom
+
+            if (gameState.isReady && !gameState.gameRunning) {
+                // --- Primer Salto: Iniciar el juego ---
+                gameState.isReady = false;
+                gameState.gameRunning = true;
+                document.getElementById('ready-message').style.display = 'none';
+
+                gameState.birdVelocity = JUMP_FORCE;
+                sounds.jump.currentTime = 0;
+                sounds.jump.play();
+
+                // Iniciar el bucle del juego AHORA
+                gameState.lastFrameTime = performance.now();
+                gameLoop(gameState.lastFrameTime);
+
+            } else if (gameState.gameRunning) {
+                // --- Salto normal durante el juego ---
+                gameState.birdVelocity = JUMP_FORCE;
+
+                // efecto de sonido
+                sounds.jump.currentTime = 0;
+                sounds.jump.play();
+            }
+
+
+        }
+
+        colorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                colorOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                gameState.selectedEmoji = option.dataset.emoji;
+                bird.textContent = gameState.selectedEmoji;
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && instructionsModal.style.display === 'flex') {
+                hideInstructions();
+            }
+        });
+
+
+        // --- Funciones UI (Pantallas e Instrucciones) ---
+
+        function showCustomizeScreen() {
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            customizeScreen.style.display = 'flex';
+        }
+
+        function saveCustomization() {
+            customizeScreen.style.display = 'none';
+            if (gameOverScreen.style.display === 'flex') {
+                gameOverScreen.style.display = 'flex';
+            } else {
+                startScreen.style.display = 'flex';
+            }
+            bird.textContent = gameState.selectedEmoji;
+        }
+
+        function showInstructions() {
+            instructionsModal.style.display = 'flex';
+        }
+
+        function hideInstructions() {
+            instructionsModal.style.display = 'none';
+        }
+
+
+        // --- Funciones Principales del Juego ---
+
+        function startGame() {
+            if (gameState.gameRunning || gameState.isReady) return; // Evitar doble clic
+
+            // Resetear estado del juego
+            gameState.birdY = BIRD_START_Y;
+            gameState.birdVelocity = 0;
+            gameState.pipes = [];
+            gameState.coins = [];
+            gameState.powerups = [];
+            gameState.score = 0;
+            gameState.coinsCollected = 0;
+            gameState.lastPipeTime = 0;
+            gameState.lastCoinTime = 0;
+            gameState.lastPowerupTime = 0;
+            gameState.gameSpeed = 1;
+            gameState.pipeSpeed = BASE_PIPE_SPEED;
+            gameState.coinSpeed = BASE_COIN_SPEED;
+            gameState.pipeFrequency = BASE_PIPE_FREQUENCY;
+            gameState.pipesPassedSinceLastSpeedIncrease = 0;
+            gameState.lastFrameTime = null;
+
+            gameState.activePowerUps = {
+                shield: { active: false, endTime: 0 },
+                turbo: { active: false, pipesPassed: 0, targetPipes: TURBO_PIPES, originalSpeed: 1 },
+                magnet: { active: false, endTime: 0 }
+            };
+            updatePowerupIndicator();
+            bird.className = '';
+            bird.style.top = gameState.birdY + 'px';
+            bird.textContent = gameState.selectedEmoji;
+
+
+            // Limpiar elementos del DOM
+            document.querySelectorAll('.pipe').forEach(pipe => pipe.remove());
+            document.querySelectorAll('.coin').forEach(coin => coin.remove());
+            document.querySelectorAll('.power-up').forEach(pu => pu.remove());
+
+            // Actualizar UI
+            scoreElement.textContent = '0';
+            coinsElement.textContent = '0';
+            totalElement.textContent = '0';
+            speedIndicator.textContent = 'Velocidad: 1x';
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            customizeScreen.style.display = 'none';
+
+            // No iniciamos el juego, solo lo preparamos
+            document.getElementById('ready-message').style.display = 'block';
+            gameState.isReady = true;
+            gameState.gameRunning = false;
+        }
+
+        function restartGame() {
+            gameState.gameRunning = false;
+            cancelAnimationFrame(gameState.animationId);
+            gameOverScreen.style.display = 'none';
+            startGame();
+        }
+
+        function gameOver() {
+            // efecto de sonido
+            sounds.die.play();
+
+
+            gameState.gameRunning = false;
+            finalScoreElement.textContent = gameState.score;
+            finalCoinsElement.textContent = gameState.coinsCollected;
+            finalTotalElement.textContent = gameState.score + (gameState.coinsCollected * 2);
+            finalSpeedElement.textContent = gameState.gameSpeed.toFixed(1) + 'x';
+            gameOverScreen.style.display = 'flex';
+            bird.className = '';
+        }
+
+        function increaseSpeed() {
+
+            // efecto de sonido
+            sounds.incrementoVelocidad.play();
+
+            if (gameState.gameSpeed >= MAX_SPEED) return;
+
+            gameState.gameSpeed += 0.2;
+            gameState.pipeSpeed = BASE_PIPE_SPEED * gameState.gameSpeed;
+            gameState.coinSpeed = BASE_COIN_SPEED * gameState.gameSpeed;
+            gameState.pipeFrequency = BASE_PIPE_FREQUENCY / gameState.gameSpeed;
+            gameState.pipesPassedSinceLastSpeedIncrease = 0;
+
+            speedIndicator.textContent = 'Velocidad: ' + gameState.gameSpeed.toFixed(1) + 'x';
+        }
+
+        // --- Bucle Principal (Game Loop) ---
+
+        function gameLoop(timestamp) {
+            if (!gameState.gameRunning) return;
+
+            if (!gameState.lastFrameTime) gameState.lastFrameTime = timestamp;
+            let delta = (timestamp - gameState.lastFrameTime) / 1000;
+            if (isNaN(delta) || !isFinite(delta) || delta <= 0 || delta > 0.5) delta = 1 / 60;
+            gameState.lastFrameTime = timestamp;
+
+            gameState.animationId = requestAnimationFrame(gameLoop);
+
+            // Mover el pájaro (Física)
+            gameState.birdVelocity += GRAVITY * delta;
+            gameState.birdY += gameState.birdVelocity * delta;
+            bird.style.top = gameState.birdY + 'px';
+
+
+            // Colisiones con bordes
+            if (gameState.birdY < 0) {
+                gameState.birdY = 0;
+                gameState.birdVelocity = 0;
+            } else if (gameState.birdY + BIRD_SIZE > gameHeight) {
+                gameState.birdY = gameHeight - BIRD_SIZE;
+                if (gameState.birdVelocity > 0 && !gameState.activePowerUps.shield.active && !gameState.activePowerUps.turbo.active) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            // --- Generación de Entidades ---
+            if (timestamp - gameState.lastPipeTime > gameState.pipeFrequency) {
+                createPipe();
+                gameState.lastPipeTime = timestamp;
+            }
+            if (timestamp - gameState.lastCoinTime > COIN_FREQUENCY) {
+                createCoin();
+                gameState.lastCoinTime = timestamp;
+            }
+            if (timestamp - gameState.lastPowerupTime > POWERUP_FREQUENCY && Math.random() < 0.3) {
+                createPowerUp();
+                gameState.lastPowerupTime = timestamp;
+            }
+
+            // --- Movimiento y Colisiones ---
+
+            // Delay del Turbo (Orden invertido) ***
+            // 1. Chequear colisión (mientras el turbo AÚN está activo)
+            if (!gameState.activePowerUps.shield.active && !gameState.activePowerUps.turbo.active) {
+                checkPipeCollision();
+            }
+            // 2. Mover tuberías (aquí el turbo puede desactivarse DESPUÉS de pasar)
+            movePipes(delta);
+
+            moveCoins(delta);
+            checkCoinCollision();
+            attractCoinsWithMagnet(delta);
+
+            movePowerups(delta);
+            checkPowerupCollision();
+
+            // Chequeo de Power-ups (parpadeo) ---
+            checkActivePowerUps();
+        }
+
+
+        // --- Funciones de Tuberías ---
+
+        function createPipe() {
+            const pipeHeight = Math.floor(Math.random() * (gameHeight - gameState.pipeGap - 100)) + 50;
+
+            const topPipe = document.createElement('div');
+            topPipe.className = 'pipe';
+            topPipe.style.left = gameWidth + 'px';
+            topPipe.style.top = '0px';
+            topPipe.style.height = pipeHeight + 'px';
+            gameContainer.appendChild(topPipe);
+
+            const bottomPipe = document.createElement('div');
+            bottomPipe.className = 'pipe';
+            bottomPipe.style.left = gameWidth + 'px';
+            bottomPipe.style.top = (pipeHeight + gameState.pipeGap) + 'px';
+            bottomPipe.style.height = (gameHeight - pipeHeight - gameState.pipeGap) + 'px';
+            gameContainer.appendChild(bottomPipe);
+
+            gameState.pipes.push({
+                top: topPipe,
+                bottom: bottomPipe,
+                x: gameWidth,
+                height: pipeHeight,
+                passed: false
+            });
+        }
+
+        function movePipes(delta) {
+            for (let i = gameState.pipes.length - 1; i >= 0; i--) {
+                const pipe = gameState.pipes[i];
+                pipe.x -= gameState.pipeSpeed * delta * DELTA_MULTIPLIER;
+                pipe.top.style.left = pipe.x + 'px';
+                pipe.bottom.style.left = pipe.x + 'px';
+
+                if (!pipe.passed && pipe.x < BIRD_START_X - BIRD_SIZE) {
+                    pipe.passed = true;
+                    gameState.score++;
+                    gameState.pipesPassedSinceLastSpeedIncrease++;
+
+                    if (gameState.activePowerUps.turbo.active) {
+                        gameState.activePowerUps.turbo.pipesPassed++;
+                        // Stacking de Turbo ***
+                        // La desactivación ahora respeta el 'targetPipes' acumulado
+                        if (gameState.activePowerUps.turbo.pipesPassed >= gameState.activePowerUps.turbo.targetPipes) {
+                            deactivatePowerUp('turbo');
+                        }
+                    }
+
+                    if (gameState.pipesPassedSinceLastSpeedIncrease >= SPEED_INCREASE_INTERVAL) {
+                        increaseSpeed();
+                    }
+
+                    scoreElement.textContent = gameState.score;
+                    totalElement.textContent = gameState.score + (gameState.coinsCollected * 2);
+                }
+
+                if (pipe.x < -PIPE_WIDTH) {
+                    pipe.top.remove();
+                    pipe.bottom.remove();
+                    gameState.pipes.splice(i, 1);
+                }
+            }
+        }
+
+        function checkPipeCollision() {
+            const birdLeft = BIRD_START_X;
+            const birdRight = BIRD_START_X + BIRD_SIZE;
+            const birdTop = gameState.birdY;
+            const birdBottom = gameState.birdY + BIRD_SIZE;
+            const tolerance = BIRD_COLLISION_TOLERANCE;
+
+            for (const pipe of gameState.pipes) {
+                const pipeLeft = pipe.x;
+                const pipeRight = pipe.x + PIPE_WIDTH;
+
+                if (birdRight > pipeLeft + (PIPE_WIDTH * tolerance) &&
+                    birdLeft < pipeRight - (PIPE_WIDTH * tolerance)) {
+
+                    const pipeTopBottom = parseInt(pipe.top.style.height) + (BIRD_SIZE * tolerance);
+                    if (birdTop < pipeTopBottom - (BIRD_SIZE * tolerance)) {
+                        gameOver();
+                        return;
+                    }
+
+                    const pipeBottomTop = parseInt(pipe.bottom.style.top) - (BIRD_SIZE * tolerance);
+                    if (birdBottom > pipeBottomTop + (BIRD_SIZE * tolerance)) {
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+        }
+
+
+        // --- Funciones de Monedas ---
+
+        function createCoin() {
+            let suitablePipe = null;
+            for (const pipe of gameState.pipes) {
+                if (pipe.x > gameWidth / 2 && pipe.x < gameWidth - 100) {
+                    suitablePipe = pipe;
+                    break;
+                }
+            }
+
+            let coinX, coinY;
+
+            if (suitablePipe) {
+                coinX = suitablePipe.x + (PIPE_WIDTH / 2) - (COIN_SIZE / 2); // Centrado
+                const minY = suitablePipe.height + 20;
+                const maxY = suitablePipe.height + gameState.pipeGap - 20;
+                coinY = Math.floor(Math.random() * (maxY - minY)) + minY;
+            } else {
+                coinX = gameWidth;
+                coinY = Math.floor(Math.random() * (gameHeight - 40)) + 20;
+            }
+
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.style.left = coinX + 'px';
+            coin.style.top = coinY + 'px';
+            gameContainer.appendChild(coin);
+
+            gameState.coins.push({
+                element: coin,
+                x: coinX,
+                y: coinY
+            });
+        }
+
+        function moveCoins(delta) {
+            for (let i = gameState.coins.length - 1; i >= 0; i--) {
+                const coin = gameState.coins[i];
+                coin.x -= gameState.coinSpeed * delta * DELTA_MULTIPLIER;
+                coin.element.style.left = coin.x + 'px';
+
+                if (coin.x < -COIN_SIZE) {
+                    coin.element.remove();
+                    gameState.coins.splice(i, 1);
+                }
+            }
+        }
+
+        function checkCoinCollision() {
+            const birdLeft = BIRD_START_X;
+            const birdRight = BIRD_START_X + BIRD_SIZE;
+            const birdTop = gameState.birdY;
+            const birdBottom = gameState.birdY + BIRD_SIZE;
+
+            for (let i = gameState.coins.length - 1; i >= 0; i--) {
+                const coin = gameState.coins[i];
+                const coinLeft = coin.x;
+                const coinRight = coin.x + COIN_SIZE;
+                const coinTop = coin.y;
+                const coinBottom = coin.y + COIN_SIZE;
+
+                if (birdRight > coinLeft && birdLeft < coinRight &&
+                    birdBottom > coinTop && birdTop < coinBottom) {
+                    coin.element.remove();
+                    gameState.coins.splice(i, 1);
+                    gameState.coinsCollected++;
+                    coinsElement.textContent = gameState.coinsCollected;
+                    totalElement.textContent = gameState.score + (gameState.coinsCollected * 2);
+
+                    // efecto de sonido
+                    sounds.coin.currentTime = 0;
+                    sounds.coin.play();
+                }
+            }
+        }
+
+        function attractCoinsWithMagnet(delta) {
+            if (!gameState.activePowerUps.magnet.active) return;
+
+            const birdCenterX = BIRD_START_X + BIRD_SIZE / 2;
+            const birdCenterY = gameState.birdY + BIRD_SIZE / 2;
+
+            for (let i = gameState.coins.length - 1; i >= 0; i--) {
+                const coin = gameState.coins[i];
+                const coinCenterX = coin.x + COIN_SIZE / 2;
+                const coinCenterY = coin.y + COIN_SIZE / 2;
+
+                const dx = birdCenterX - coinCenterX;
+                const dy = birdCenterY - coinCenterY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < MAGNET_RADIUS) {
+                    // Velocidad de atracción aumentada ***
+                    const speed = MAGNET_ATTRACT_SPEED_FACTOR * (1 - distance / MAGNET_RADIUS) * delta * DELTA_MULTIPLIER;
+                    coin.x += (dx / distance) * speed;
+                    coin.y += (dy / distance) * speed;
+                    coin.element.style.left = coin.x + 'px';
+                    coin.element.style.top = coin.y + 'px';
+                }
+            }
+        }
+
+
+        // --- Funciones de Power-ups ---
+
+        function getPowerUpSVG(type) {
+            switch (type) {
+                case 'shield':
+                    return `
+                <svg width="25" height="25" viewBox="0 0 32 32">
+                <ellipse cx="16" cy="16" rx="14" ry="14" fill="gold" stroke="#ed3a13" stroke-width="3"/>
+                <path d="M16 6 Q24 10 16 28 Q8 10 16 6Z" fill="#fff59d" stroke="#ed3a13" stroke-width="2"/>
+                </svg>`;
+                case 'turbo':
+                    return `
+                <svg width="25" height="25" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="14" fill="orange" stroke="#d35400" stroke-width="3"/>
+                <polygon points="14,7 22,15 17,15 19,25 10,15 15,15" fill="#fff" stroke="#d35400" stroke-width="1"/>
+                </svg>`;
+                case 'magnet':
+                    return `
+                <svg width="25" height="25" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="14" fill="lightblue" stroke="#2980b9" stroke-width="3"/>
+                <path d="M10 20 Q8 12 16 12 Q24 12 22 20" fill="none" stroke="#2980b9" stroke-width="4"/>
+                <rect x="8" y="18" width="4" height="6" fill="#fff"/>
+                <rect x="20" y="18" width="4" height="6" fill="#fff"/>
+                </svg>`;
+                default:
+                    return `
+                <svg width="25" height="25" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="14" fill="#ccc" stroke="#888" stroke-width="3"/>
+                </svg>`;
+            }
+        }
+
+        function createPowerUp() {
+            const types = ['shield', 'turbo', 'magnet'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const x = gameWidth;
+            const y = Math.floor(Math.random() * (gameHeight - 60 - POWERUP_SIZE)) + 30;
+
+            const powerup = document.createElement('div');
+            powerup.className = 'power-up';
+            powerup.dataset.type = type;
+            powerup.innerHTML = getPowerUpSVG(type);
+            powerup.style.left = x + 'px';
+            powerup.style.top = y + 'px';
+            gameContainer.appendChild(powerup);
+
+            gameState.powerups.push({
+                element: powerup,
+                x: x,
+                y: y,
+                type: type
+            });
+        }
+
+        function movePowerups(delta) {
+            for (let i = gameState.powerups.length - 1; i >= 0; i--) {
+                const pu = gameState.powerups[i];
+                pu.x -= gameState.pipeSpeed * delta * DELTA_MULTIPLIER;
+                pu.element.style.left = pu.x + 'px';
+
+                if (pu.x < -POWERUP_SIZE) {
+                    pu.element.remove();
+                    gameState.powerups.splice(i, 1);
+                }
+            }
+        }
+
+        function checkPowerupCollision() {
+            const birdLeft = BIRD_START_X;
+            const birdRight = BIRD_START_X + BIRD_SIZE;
+            const birdTop = gameState.birdY;
+            const birdBottom = gameState.birdY + BIRD_SIZE;
+
+            for (let i = gameState.powerups.length - 1; i >= 0; i--) {
+                const pu = gameState.powerups[i];
+                const puLeft = pu.x;
+                const puRight = pu.x + POWERUP_SIZE;
+                const puTop = pu.y;
+                const puBottom = pu.y + POWERUP_SIZE;
+
+                if (birdRight > puLeft && birdLeft < puRight &&
+                    birdBottom > puTop && birdTop < puBottom) {
+                    pu.element.remove();
+                    gameState.powerups.splice(i, 1);
+                    activatePowerUp(pu.type);
+
+                    // efectos de sonido
+                    // Usamos uno específico basado en el tipo
+                    switch (pu.type) {
+                        case 'shield':
+                            sounds.powerupShield.play();
+                            break;
+                        case 'turbo':
+                            sounds.powerupTurbo.play();
+                            break;
+                        case 'magnet':
+                            sounds.powerupMagnet.play();
+                            break;
+                    }
+                }
+            }
+        }
+
+        // Power-ups Acumulables (Función modificada) ***
+        function activatePowerUp(type) {
+            const now = Date.now(); // Necesario para acumular
+
+            switch (type) {
+                case 'shield':
+                    // Acumula tiempo: si está activo, añade duración al final. Si no, crea uno nuevo.
+                    let currentShieldEnd = gameState.activePowerUps.shield.endTime;
+                    let newShieldEnd = (currentShieldEnd > now) ? currentShieldEnd + SHIELD_DURATION : now + SHIELD_DURATION;
+
+                    gameState.activePowerUps.shield.active = true;
+                    gameState.activePowerUps.shield.endTime = newShieldEnd;
+                    bird.classList.add('shield');
+                    break;
+
+                case 'turbo':
+                    if (!gameState.activePowerUps.turbo.active) {
+                        // Primera activación: guarda velocidad original y aplica turbo
+                        gameState.activePowerUps.turbo.active = true;
+                        gameState.activePowerUps.turbo.pipesPassed = 0;
+                        gameState.activePowerUps.turbo.targetPipes = TURBO_PIPES; // Set inicial
+                        gameState.activePowerUps.turbo.originalSpeed = gameState.gameSpeed;
+                        gameState.pipeFrequencyBeforeTurbo = gameState.pipeFrequency;
+
+                        gameState.gameSpeed = Math.min(gameState.gameSpeed * 2, MAX_SPEED * 1.5);
+                        gameState.pipeSpeed = BASE_PIPE_SPEED * gameState.gameSpeed;
+                        gameState.coinSpeed = BASE_COIN_SPEED * gameState.gameSpeed;
+                        bird.classList.add('turbo');
+
+                        // Actualiza el indicador de velocidad al activar el turbo
+                        speedIndicator.textContent = 'Velocidad: ' + gameState.gameSpeed.toFixed(1) + 'x';
+
+                    } else {
+                        // Ya está activo: solo acumula más tuberías al contador
+                        gameState.activePowerUps.turbo.targetPipes += TURBO_PIPES;
+                    }
+                    break;
+
+                case 'magnet':
+                    // Acumula tiempo: igual que el escudo
+                    let currentMagnetEnd = gameState.activePowerUps.magnet.endTime;
+                    let newMagnetEnd = (currentMagnetEnd > now) ? currentMagnetEnd + MAGNET_DURATION : now + MAGNET_DURATION;
+
+                    gameState.activePowerUps.magnet.active = true;
+                    gameState.activePowerUps.magnet.endTime = newMagnetEnd;
+                    bird.classList.add('magnet');
+                    break;
+            }
+            updatePowerupIndicator();
+        }
+
+        function deactivatePowerUp(type) {
+            switch (type) {
+                case 'shield':
+                    gameState.activePowerUps.shield.active = false;
+                    bird.classList.remove('shield');
+                    break;
+
+                case 'turbo':
+                    gameState.activePowerUps.turbo.active = false;
+                    gameState.gameSpeed = gameState.activePowerUps.turbo.originalSpeed;
+                    gameState.pipeSpeed = BASE_PIPE_SPEED * gameState.gameSpeed;
+                    gameState.coinSpeed = BASE_COIN_SPEED * gameState.gameSpeed;
+                    if (gameState.pipeFrequencyBeforeTurbo !== null) {
+                        gameState.pipeFrequency = gameState.pipeFrequencyBeforeTurbo;
+                        gameState.pipeFrequencyBeforeTurbo = null;
+                    }
+                    bird.classList.remove('turbo');
+
+                    // Actualiza el indicador de velocidad al desactivar el turbo
+                    speedIndicator.textContent = 'Velocidad: ' + gameState.gameSpeed.toFixed(1) + 'x';
+
+                    break;
+
+                case 'magnet':
+                    gameState.activePowerUps.magnet.active = false;
+                    bird.classList.remove('magnet');
+                    break;
+            }
+            // NOTA: La clase 'flashing' se elimina en checkActivePowerUps
+            updatePowerupIndicator();
+        }
+
+        //  Aviso de Parpadeo
+        function checkActivePowerUps() {
+            const now = Date.now();
+            let isFlashing = false; // Flag para controlar el parpadeo
+            const { shield, turbo, magnet } = gameState.activePowerUps;
+
+            // Verificar Escudo
+            if (shield.active) {
+                const timeLeft = shield.endTime - now;
+                if (timeLeft <= 0) {
+                    deactivatePowerUp('shield');
+                } else if (timeLeft <= POWERUP_WARNING_TIME) {
+                    isFlashing = true; // Marcar para parpadear
+                }
+            }
+
+            // Verificar Imán
+            if (magnet.active) {
+                const timeLeft = magnet.endTime - now;
+                if (timeLeft <= 0) {
+                    deactivatePowerUp('magnet');
+                } else if (timeLeft <= POWERUP_WARNING_TIME) {
+                    isFlashing = true; // Marcar para parpadear
+                }
+            }
+
+            // Verificar Turbo
+            if (turbo.active) {
+                // El turbo se desactiva en movePipes
+                // Aquí solo chequeamos si debe parpadear
+                const pipesLeft = turbo.targetPipes - turbo.pipesPassed;
+                if (pipesLeft <= 1) { // Advertir cuando queda 1 tubería
+                    isFlashing = true;
+                }
+            }
+
+            // Aplicar o quitar la clase de parpadeo
+            if (isFlashing) {
+                bird.classList.add('flashing');
+            } else {
+                bird.classList.remove('flashing');
+            }
+
+            updatePowerupIndicator();
+        }
+
+        function updatePowerupIndicator() {
+            const active = [];
+            const { shield, turbo, magnet } = gameState.activePowerUps;
+
+            if (shield.active) {
+                const timeLeft = Math.ceil((shield.endTime - Date.now()) / 1000);
+                active.push(`Escudo (${timeLeft}s)`);
+            }
+            if (turbo.active) {
+                // Mostrar el total de tuberías restantes
+                const pipesLeft = turbo.targetPipes - turbo.pipesPassed;
+                active.push(`Turbo (${pipesLeft}t)`);
+            }
+            if (magnet.active) {
+                const timeLeft = Math.ceil((magnet.endTime - Date.now()) / 1000);
+                active.push(`Imán (${timeLeft}s)`);
+            }
+
+            powerupIndicator.textContent = active.length ? active.join(', ') : 'Ninguno';
+        }
+    </script>
+</body>
+
+</html>
