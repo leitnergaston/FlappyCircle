@@ -56,6 +56,7 @@ const sounds = {
 // Opcional: Ajustar el volumen si suenan muy fuerte
 sounds.coin.volume = 0.4;
 sounds.jump.volume = 0.4;
+sounds.die.volume = 0.6;
 sounds.powerupShield.volume = 0.6;
 sounds.powerupTurbo.volume = 0.6;
 sounds.powerupMagnet.volume = 0.6;
