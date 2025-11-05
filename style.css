@@ -11,6 +11,12 @@ body {
 }
 
 #game-container {
+    background-image: url('imagenes/fondo.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+
+
     position: relative;
     width: 400px;
     height: 600px;

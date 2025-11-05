@@ -62,6 +62,7 @@ sounds.powerupTurbo.volume = 0.6;
 sounds.powerupMagnet.volume = 0.6;
 sounds.incrementoVelocidad.volume = 0.6;
 
+
 // --- Constantes del Juego ---
 const BIRD_START_X = 100;
 const BIRD_START_Y = 300;
